@@ -8,6 +8,7 @@ import axios from 'axios'
 export default {
   data () {
     return {
+      cname: '',
       /* loading */
       loading: false,
       /* 菜单信息列表数据 */
@@ -16,107 +17,75 @@ export default {
         {
           title: 'ID',
           align: 'center',
-          key: 'eid',
+          key: 'cid',
           tooltip: true,
           width: 80
         },
         {
-          title: '人员名',
-          key: 'ename',
-          align: 'center',
-          tooltip: true
-        },
-        {
-          title: '所属公司',
+          title: '公司名',
           key: 'cname',
           align: 'center',
           tooltip: true
         },
         {
-          title: '基础薪水',
-          key: 'employeeSalary.esbasicSalary',
+          title: '管理费',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalary.esbasicSalary)
-          }
-        },
-        {
-          title: '奖金',
-          key: 'employeeSalary.esbonus',
-          align: 'center',
-          tooltip: true,
-          render: (h, params) => {
-            return h('span', params.row.employeeSalary.esbonus)
+            return h('span', params.row.companySalary.csmanageSalary)
           }
         },
         {
           title: '养老保险',
-          key: 'employeeSalary.esbonus',
+          key: 'companySalary.s1',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalary.s1)
+            return h('span', params.row.companySalary.s1)
           }
         },
         {
           title: '事业保险',
-          key: 'employeeSalary.esbonus',
+          key: 'companySalary.s2',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalary.s2)
+            return h('span', params.row.companySalary.s2)
           }
         },
         {
           title: '生育保险',
-          key: 'employeeSalary.esbonus',
+          key: 'companySalary.s3',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalary.s3)
+            return h('span', params.row.companySalary.s3)
           }
         },
         {
           title: '医疗保险',
-          key: 'employeeSalary.esbonus',
+          key: 'companySalary.s4',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalary.s4)
+            return h('span', params.row.companySalary.s4)
           }
         },
         {
           title: '公积金',
-          key: 'employeeSalary.esbonus',
+          key: 'companySalary.s5',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalary.s5)
+            return h('span', params.row.companySalary.s5)
           }
-        },
-        {
-          title: '税费',
-          key: 'employeeSalarytax',
-          align: 'center',
-          tooltip: true,
-          render: (h, params) => {
-            return h('span', params.row.employeeSalary.tax)
-          }
-        },
-        {
-          title: '实际发放工资',
-          key: 'actualSalary',
-          align: 'center',
-          tooltip: true
         },
         {
           title: '月份',
-          key: 'employeeSalary.esdate',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalary.esdate)
+            return h('span', params.row.companySalary.csdate)
           }
         }
       ]
@@ -124,11 +93,17 @@ export default {
   },
   methods: {
     /* 获取列表数据 */
-    getTable () {
+    getTable (cname) {
       let t = this
-      axios.post('http://127.0.0.1:8081/employee/me').then(res => {
+      axios.post('http://127.0.0.1:8081/company?cname=' + cname).then(res => {
         var result = res.data.data
         t.tableData = result
+      })
+      axios.post('http://127.0.0.1:8081/company/is').then(res => {
+        this.$Message.info({
+          title: '提示',
+          content: '有公司未缴纳费用，请缴纳'
+        })
       })
     },
     /* 搜索按钮触发方法 */
@@ -142,7 +117,25 @@ export default {
     }
   },
   created () {
-    this.getTable()
+    this.$Modal.confirm({
+      render: (h) => {
+        return h('Input', {
+          props: {
+            value: this.value,
+            autofocus: true,
+            placeholder: '请输入公司名字'
+          },
+          on: {
+            input: (val) => {
+              this.cname = val
+            }
+          }
+        })
+      },
+      onOk: () => {
+        this.getTable(this.cname)
+      }
+    })
   }
 }
 </script>

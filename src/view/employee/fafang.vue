@@ -1,10 +1,5 @@
 <template>
   <Card :bordered="false">
-    <div>
-      <span class="search-lable">人员名称：</span>
-      <Input placeholder="输入人员名称进行搜索" v-model="ename" clearable style="width: 300px" />
-      <Button class="search-btn" type="primary" icon="ios-search" @click="searchRole()" >&nbsp;&nbsp;搜索</Button>
-    </div>
     <i-table border  :columns="columns" :loading="loading" :data="tableData" style=""></i-table>
   </Card>
 </template>
@@ -14,6 +9,7 @@ export default {
   data () {
     return {
       ename: '',
+      cname: '',
       /* loading */
       loading: false,
       /* 菜单信息列表数据 */
@@ -33,21 +29,24 @@ export default {
           tooltip: true
         },
         {
-          title: '每年平均薪资',
-          key: 'employeeSalaryRespDto.avgSalary',
+          title: '所属公司',
+          key: 'cname',
           align: 'center',
-          tooltip: true,
-          render: (h, params) => {
-            return h('span', params.row.employeeSalaryRespDto.avgSalary)
-          }
+          tooltip: true
         },
         {
-          title: '年份',
-          key: 'employeeSalaryRespDto.esdate',
+          title: '实际发放工资',
+          key: 'actualSalary',
+          align: 'center',
+          tooltip: true
+        },
+        {
+          title: '月份',
+          key: 'employeeSalary.esdate',
           align: 'center',
           tooltip: true,
           render: (h, params) => {
-            return h('span', params.row.employeeSalaryRespDto.esdate)
+            return h('span', params.row.employeeSalary.esdate)
           }
         }
       ]
@@ -55,10 +54,11 @@ export default {
   },
   methods: {
     /* 获取列表数据 */
-    getTable () {
+    getTable (ename) {
       let t = this
-      axios.post('http://127.0.0.1:8081/employee/avgSalary').then(res => {
-        var result = res.data
+      var url = 'http://127.0.0.1:8081/employee?cname=' + ename
+      axios.post(url).then(res => {
+        var result = res.data.data
         t.tableData = result
       })
       axios.post('http://127.0.0.1:8081/employee/is').then(res => {
@@ -79,7 +79,25 @@ export default {
     }
   },
   created () {
-    this.getTable()
+    this.$Modal.confirm({
+      render: (h) => {
+        return h('Input', {
+          props: {
+            value: this.value,
+            autofocus: true,
+            placeholder: '请输入公司名字'
+          },
+          on: {
+            input: (val) => {
+              this.cname = val
+            }
+          }
+        })
+      },
+      onOk: () => {
+        this.getTable(this.cname)
+      }
+    })
   }
 }
 </script>

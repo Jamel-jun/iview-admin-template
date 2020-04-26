@@ -8,6 +8,8 @@ import axios from 'axios'
 export default {
   data () {
     return {
+      ename: '',
+      cname: '',
       /* loading */
       loading: false,
       /* 菜单信息列表数据 */
@@ -25,30 +27,6 @@ export default {
           key: 'ename',
           align: 'center',
           tooltip: true
-        },
-        {
-          title: '所属公司',
-          key: 'cname',
-          align: 'center',
-          tooltip: true
-        },
-        {
-          title: '基础薪水',
-          key: 'employeeSalary.esbasicSalary',
-          align: 'center',
-          tooltip: true,
-          render: (h, params) => {
-            return h('span', params.row.employeeSalary.esbasicSalary)
-          }
-        },
-        {
-          title: '奖金',
-          key: 'employeeSalary.esbonus',
-          align: 'center',
-          tooltip: true,
-          render: (h, params) => {
-            return h('span', params.row.employeeSalary.esbonus)
-          }
         },
         {
           title: '养老保险',
@@ -96,21 +74,6 @@ export default {
           }
         },
         {
-          title: '税费',
-          key: 'employeeSalarytax',
-          align: 'center',
-          tooltip: true,
-          render: (h, params) => {
-            return h('span', params.row.employeeSalary.tax)
-          }
-        },
-        {
-          title: '实际发放工资',
-          key: 'actualSalary',
-          align: 'center',
-          tooltip: true
-        },
-        {
           title: '月份',
           key: 'employeeSalary.esdate',
           align: 'center',
@@ -124,11 +87,18 @@ export default {
   },
   methods: {
     /* 获取列表数据 */
-    getTable () {
+    getTable (ename) {
       let t = this
-      axios.post('http://127.0.0.1:8081/employee/me').then(res => {
+      var url = 'http://127.0.0.1:8081/employee?ename=' + ename
+      axios.post(url).then(res => {
         var result = res.data.data
         t.tableData = result
+      })
+      axios.post('http://127.0.0.1:8081/employee/is').then(res => {
+        this.$Message.info({
+          title: '提示',
+          content: '有员工未发放工资，请发放'
+        })
       })
     },
     /* 搜索按钮触发方法 */
@@ -142,7 +112,25 @@ export default {
     }
   },
   created () {
-    this.getTable()
+    this.$Modal.confirm({
+      render: (h) => {
+        return h('Input', {
+          props: {
+            value: this.value,
+            autofocus: true,
+            placeholder: '请输入员工名字'
+          },
+          on: {
+            input: (val) => {
+              this.cname = val
+            }
+          }
+        })
+      },
+      onOk: () => {
+        this.getTable(this.cname)
+      }
+    })
   }
 }
 </script>
